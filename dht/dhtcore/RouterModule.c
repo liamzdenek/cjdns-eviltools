@@ -868,7 +868,7 @@ struct RouterModule_Search* RouterModule_beginSearch(
 
     // Send out the request.
     sendRequest(firstSearchNode->address,
-                CJDHTConstants_QUERY_FN,
+                CJDHTConstants_QUERY_DP,
                 SearchStore_tidForNode(firstSearchNode, searchAllocator),
                 &targetAddr,
                 CJDHTConstants_TARGET,
