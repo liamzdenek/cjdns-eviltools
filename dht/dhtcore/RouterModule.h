@@ -40,6 +40,9 @@ struct RouterModule_Search;
 /** Maximum number of pings which can be in flight at once. */
 #define RouterModule_MAX_CONCURRENT_PINGS 64
 
+/** Number of direct connections which will be stored. */
+#define RouterModule_MAX_DIRECT_PEERS 256
+
 /**
  * Register a new RouterModule.
  *

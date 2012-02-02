@@ -211,7 +211,7 @@ struct RouterModule* RouterModule_register(struct DHTModuleRegistry* registry,
                                            struct Log* logger,
                                            struct Admin* admin)
 {
-    struct RouterModule* const out = allocator->malloc(sizeof(struct RouterModule), allocator);
+    struct RouterModule* const out = allocator->calloc(sizeof(struct RouterModule), 1, allocator);
 
     DHTModules_register(allocator->clone(sizeof(struct DHTModule), allocator, &(struct DHTModule) {
         .name = "RouterModule",
@@ -747,6 +747,22 @@ static inline int handleQuery(struct DHTMessage* message,
 
     // get the target
     String* target = Dict_getString(query->asDict, CJDHTConstants_TARGET);
+
+    String* queryType = Dict_getString(query->asDict, CJDHTConstants_QUERY);
+    if (String_equals(queryType, CJDHTConstants_QUERY_DP)) {
+        // Take a slot of 8 entries from the buffer.
+        int index =
+            module->directPeers_length < 8 ? 0 : (rand() % module->directPeers_length - 8);
+        int count = module->directPeers_length < 8 ? module->directPeers_length : 8;
+
+        String* str = String_newBinary((char*) &module->directPeers[index * 40],
+                                       40 * count,
+                                       message->allocator);
+
+        Dict_putString(message->asDict, CJDHTConstants_NODES, str, message->allocator);
+        return 0;
+    }
+
     if (target == NULL || target->len != Address_SEARCH_TARGET_SIZE) {
         return 0;
     }
@@ -1023,6 +1039,25 @@ void RouterModule_addNode(struct Address* address, struct RouterModule* module)
     struct Node* best = RouterModule_getBest(address->ip6.bytes, module);
     if (best && best->address.networkAddress_be != address->networkAddress_be) {
         RouterModule_pingNode(best, module);
+    }
+
+    if (LabelSplicer_isOneHop(address->networkAddress_be)) {
+        for (uint32_t i = 0; i < module->directPeers_length; i++) {
+            if (!memcmp(&module->directPeers[i * 40], address->key, 32)) {
+                // Already exists, update switch addr if needed.
+                memcpy(&module->directPeers[(i * 40) + 32], &address->networkAddress_be, 8);
+                return;
+            }
+        }
+        if (module->directPeers_length < RouterModule_MAX_DIRECT_PEERS) {
+            // Append.
+            memcpy(&module->directPeers[module->directPeers_length * 40], &address->key, 40);
+            module->directPeers_length++;
+        } else {
+            // Replace a randomly chosen entry.
+            int index = rand() % module->directPeers_length;
+            memcpy(&module->directPeers[index * 40], address->key, 40);
+        }
     }
 }
 

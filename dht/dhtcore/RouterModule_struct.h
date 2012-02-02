@@ -53,6 +53,10 @@ struct RouterModule
 
     /** A memory allocator which only exists when there are pings in flight. */
     struct Allocator* pingAllocator;
+
+    uint8_t directPeers[40 * RouterModule_MAX_DIRECT_PEERS];
+
+    uint32_t directPeers_length;
 };
 
 #endif

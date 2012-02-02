@@ -22,6 +22,8 @@ String* const CJDHTConstants_QUERY;
 // Find nodes query. "fn"
 String* const CJDHTConstants_QUERY_FN;
 
+String* const CJDHTConstants_QUERY_DP;
+
 // Ping query
 String* const CJDHTConstants_QUERY_PING;
 

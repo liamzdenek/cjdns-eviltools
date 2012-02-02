@@ -19,6 +19,12 @@ String* const CJDHTConstants_QUERY =      &(String) { .len = 1, .bytes = "q"    
 // Find nodes query. "fn"
 String* const CJDHTConstants_QUERY_FN =   &(String) { .len = 2, .bytes = "fn"   };
 
+// Direct peers query. "dp"
+String* const CJDHTConstants_QUERY_DP =   &(String) { .len = 2, .bytes = "dp"   };
+
+// Version.
+String* const CJDHTConstants_VERSION =    &(String) { .len = 1, .bytes = "v"    };
+
 // Ping query
 String* const CJDHTConstants_QUERY_PING = &(String) { .len = 2, .bytes = "pn"   };
 
