@@ -25,6 +25,8 @@ my $dbh = DBI->connect('dbi:mysql:database=cjdns_ips','root','lolcoptersarego') 
 my $sth = $dbh->prepare(all_end_with_same_value());
 $sth->execute();
 
+use Data::Dumper qw/ Dumper /;
+
 my $count = 0;
 while (my $ref = $sth->fetchrow_hashref())
 {
