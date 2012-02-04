@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use DBI;
-my $dbh = DBI->connect('dbi:mysql:database=cjdns_ips','root','x59f3liam') or die "Connection Error: $DBI::errstr\n";
+my $dbh = DBI->connect('dbi:mysql:database=cjdns_ips','root','<scrubbed>') or die "Connection Error: $DBI::errstr\n";
 
 #my $sth = $dbh->prepare("SELECT * FROM ipv6;");
 #$sth->execute;
