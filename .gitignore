@@ -1,3 +1,7 @@
 build
 ipv6-cjdnet.data.txt
 makefile
+cjdns
+gen.o
+gen
+old
