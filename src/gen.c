@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <unistd.h>
-#include <stdio.h>
+#include <stdio.h>0.
 
 //gcc -std=gnu99 -Icjdns -Icjdns/build/nacl_build/include gen.c cjdns/build/nacl_build/libnacl.a -o gen.o
 
@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
     uint8_t privateKeyHexOut[65];
     uint8_t publicKeyBase32Out[53];
     uint8_t privateKey[32];
-    int i = 0;
-    int limit = 0;
+    uint32_t i = 0;
+    uint32_t limit = 0;
     bool has_limit = false;
     
     if(argc == 1)
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     Hex_encode(privateKeyHexOut, 65, privateKey, 32);
     //printf("private: %s\n limit:%d\n", privateKeyHexOut, limit);
     
-    for(;;)
+    while(1)
     {
         if(has_limit)
         {
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
         Hex_encode(privateKeyHexOut, 65, privateKey, 32);
         if(genAddress(AddressOut, privateKeyHexOut, publicKeyBase32Out, privateKey))
         {
-            printf("private: %s\npublic: %s.k\naddr: %s\n\n", privateKeyHexOut, publicKeyBase32Out, AddressOut);
+            printf("%s,%s,%s\n", publicKeyBase32Out, AddressOut, privateKeyHexOut);
             //return 0;
         }
     }
