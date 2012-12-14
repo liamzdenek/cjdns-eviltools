@@ -26,34 +26,9 @@
 #include <stdint.h>
 #include <assert.h>
 #include <unistd.h>
-#include <stdio.h>0.
+#include <stdio.h>
 
-//gcc -std=gnu99 -Icjdns -Icjdns/build/nacl_build/include gen.c cjdns/build/nacl_build/libnacl.a -o gen.o
-
-static int genAddress(uint8_t addressOut[40],
-                      uint8_t privateKeyHexOut[65],
-                      uint8_t publicKeyBase32Out[53],
-                      uint8_t privateKey[32])
-{
-    struct Address address;
-
-    //randombytes(privateKey, 32);
-    crypto_scalarmult_curve25519_base(address.key, privateKey);
-    AddressCalc_addressForPublicKey(address.ip6.bytes, address.key);
-    // Brute force for keys until one matches FC00:/8
-    if(
-        address.ip6.bytes[0] == 0xFC// &&
-        //(address.ip6.bytes[15] & 0xF) == (address.ip6.bytes[15] & 0x0F << 4) &&
-        //address.ip6.bytes[14] == address.ip6.bytes[15]
-    )
-    {
-        Hex_encode(privateKeyHexOut, 65, privateKey, 32);
-        Base32_encode(publicKeyBase32Out, 53, address.key, 32);
-        Address_printIp(addressOut, &address);
-        return 1;
-    }
-    return 0;
-}
+#include "eviltools.c"
 
 int main(int argc, char *argv[])
 {
@@ -61,14 +36,13 @@ int main(int argc, char *argv[])
     uint8_t privateKeyHexOut[65];
     uint8_t publicKeyBase32Out[53];
     uint8_t privateKey[32];
-    uint32_t i = 0;
     uint32_t limit = 0;
     bool has_limit = false;
     
     if(argc == 1)
     {
         // run FOREVAR
-        for(i = 0; i < 32; i++)
+        for(uint8_t i = 0; i < 32; i++)
         {
             privateKey[i] = 0x00;
         }
@@ -77,10 +51,21 @@ int main(int argc, char *argv[])
     if(argc > 1)
     {
         // run FOREVAR with a new starting point
-        for(i = 0; i < 32; i++)
+        for(uint8_t i = 0; i < 32; i++)
         {
+            if(argv[1][i*2] >= 97)
+            {
+                argv[1][i*2] -= 39;
+            }
+            if(argv[1][i*2+1] >= 97)
+            {
+                argv[1][i*2+1] -= 39;
+            }
+            //printf("char: %i, %i\n", argv[1][i*2], argv[1][i*2+1]);
             privateKey[i] = (argv[1][i*2]-48 << 4) + argv[1][i*2+1]-48;
         }
+        Hex_encode(privateKeyHexOut, 65, privateKey, 32);
+        printf("got starting privkey: %s\n", privateKeyHexOut);
     }
     if(argc > 2)
     {
@@ -89,48 +74,38 @@ int main(int argc, char *argv[])
         limit = atoi(argv[2]);
     }
     
-    Hex_encode(privateKeyHexOut, 65, privateKey, 32);
     //printf("private: %s\n limit:%d\n", privateKeyHexOut, limit);
     
     while(1)
     {
+
+        // privateKey[0] &= 248;
+        // privateKey[31] &= 127
+        // privateKey[31] |= 64;
         if(has_limit)
         {
             limit--;
             if(limit <= 0)
             {
+                Hex_encode(privateKeyHexOut, 65, privateKey, 32);
+                printf("Ending at %s\n", privateKeyHexOut);
                 return 0;
             }
         }
-        //randombytes(privateKey, 32);
-        increment_uint8_t(privateKey, 1);
-        Hex_encode(privateKeyHexOut, 65, privateKey, 32);
-        if(genAddress(AddressOut, privateKeyHexOut, publicKeyBase32Out, privateKey))
+        
+        increment_privkey(privateKey);
+        
+        if((uint8_t)(privateKey[0] & 248) == privateKey[0] || (uint8_t)((privateKey[31] & 127) | 64) == privateKey[31] )
         {
-            printf("%s,%s,%s\n", publicKeyBase32Out, AddressOut, privateKeyHexOut);
-            //return 0;
-        }
-    }
-}
-
-void increment_uint8_t( uint8_t string[32], int amount )
-{
-    int i = 0;
-    int i2 = 0;
-    for(i2 = 0; i2 < amount; i2++)
-    {
-        for(i = 0; i < 32; i++)
-        {
-            if(string[i] == 0xFF)
+            if(genAddress(AddressOut, privateKeyHexOut, publicKeyBase32Out, privateKey))
             {
-                string[i] = 0x00;
-            }
-            else
-            {
-                string[i]++;
-                break;
+                Hex_encode(privateKeyHexOut, 65, privateKey, 32);
+                printf("%s,%s\n", AddressOut, privateKeyHexOut);
             }
         }
+        else
+        {
+            //printf("skipping %s, %i, %i\n", privateKeyHexOut, privateKey[0], privateKey[0] & 248);
+        }
     }
-    return;
 }

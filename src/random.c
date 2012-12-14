@@ -36,29 +36,37 @@ int main(int argc, char *argv[])
     uint8_t privateKeyHexOut[65];
     uint8_t publicKeyBase32Out[53];
     uint8_t privateKey[32];
+    uint32_t count = 0;
     
     if(argc == 2)
     {
-        // run FOREVAR with a new starting point
-        for(uint8_t i = 0; i < 32; i++)
-        {
-            privateKey[i] = (argv[1][i*2]-48 << 4) + argv[1][i*2+1]-48;
-        }
+        count = atoi(argv[1]);
     }
     else
     {
-        printf("Error: Incorrect number of arguments\n");
+        printf("You must provide a number of keys to generate\n");
+        exit(0);
     }
     
-    Hex_encode(privateKeyHexOut, 65, privateKey, 32);
- 
-    if(genAddress(AddressOut, privateKeyHexOut, publicKeyBase32Out, privateKey))
+    while(1)
     {
-        printf("%s\n", publicKeyBase32Out);
-        //return 0;
-    }
-    else
-    {
-        printf("Error: Not a CJDNS address\n");
+        randombytes(privateKey, 32);
+        if
+        (
+            (
+                (uint8_t)(privateKey[0] & 248) == privateKey[0] ||
+                (uint8_t)((privateKey[31] & 127) | 64) == privateKey[31]
+            ) &&
+            genAddress(AddressOut, privateKeyHexOut, publicKeyBase32Out, privateKey)
+        )
+        {
+            Hex_encode(privateKeyHexOut, 65, privateKey, 32);
+            printf("%s,%s\n", AddressOut, privateKeyHexOut);
+            count--;
+            if(count <= 0)
+            {
+                exit(0);
+            }
+        }
     }
 }
